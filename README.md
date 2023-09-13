@@ -21,9 +21,9 @@ Este es el repositorio de ***DigiCore***, compuesto por:
 
 ## Wiki
 
-Se puede acceder a la Wiki con el siguiente [enlace](/wiki)
+Se puede acceder a la Wiki con el siguiente [enlace](https://github.com/INF225-2023-2-P201/02-digicore/wiki)
 
 ## Hitos
 
-- [Hito 1]() con sus correcciones
+- [Hito 1](https://github.com/INF225-2023-2-P201/02-digicore/wiki/Hito-1)
 - [Hito 2](https://github.com/INF225-2023-2-P201/02-digicore/wiki/Hito-2)
