@@ -19,6 +19,8 @@ Este es el repositorio de ***DigiCore***, compuesto por:
 - Florencia Ramírez, 202073522-0
 - Francisca Romero, 202004511-9
 
+## Task Board
+Con el siguiente enlace puede ingresar a la organización del equipo [enlace](https://trello.com/invite/b/5YLIHOAE/ATTI59ebeb755591266b79c444cdbb7308e15C014D55/digicore)
 ## Wiki
 
 Se puede acceder a la Wiki con el siguiente [enlace](https://github.com/INF225-2023-2-P201/02-digicore/wiki)
