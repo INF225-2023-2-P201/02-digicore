@@ -26,4 +26,4 @@ Se puede acceder a la Wiki con el siguiente [enlace](/wiki)
 ## Hitos
 
 - [Hito 1]() con sus correcciones
-- [Hito 2]()
+- [Hito 2](https://github.com/INF225-2023-2-P201/02-digicore/wiki/Hito-2)
