@@ -30,3 +30,4 @@ Se puede acceder a la Wiki con el siguiente [enlace](https://github.com/INF225-2
 - [Hito 1](https://github.com/INF225-2023-2-P201/02-digicore/wiki#hito-1)
 - [Hito 2](https://github.com/INF225-2023-2-P201/02-digicore/wiki#hito-2)
 - [Hito 3](https://github.com/INF225-2023-2-P201/02-digicore/wiki#hito-3)
+- [Hito 4](https://github.com/INF225-2023-2-P201/02-digicore/wiki#hito-4)
