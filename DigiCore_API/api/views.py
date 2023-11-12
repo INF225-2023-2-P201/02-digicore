@@ -3,14 +3,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
 from django.views import View
 from .models import settingsLog
+from .models import Device
 import json
 import re
-
-#Direcciones ip validas
-# Nombre A(Nodo) o PC1
-A = "192.168.3.2"
-# Nombre B(Nodo) o PC2
-B = "192.169.3.2"
+import telnetlib
+import time
 
 # Create your views here.
 class viewHandler(View):
@@ -27,17 +24,270 @@ class viewHandler(View):
     def post(self,request):
         #print(request.body)
         jd=json.loads(request.body)
-        pattern = r"Denegar\s+el\s+acceso\s+de\s+(PC1|A|PC2|B)\s+a\s+internet" # Dependiendo de la cantidad de hosts que se tengan se debe agregar o quitar elementos en el (PC1|A|PC2|B).
+        pattern = r"Denegar\s+el\s+acceso\s+de\s+(PC1|A|PC2|B|PC3|C|PC4|D)\s+a\s+internet" # Dependiendo de la cantidad de hosts que se tengan se debe agregar o quitar elementos en el (PC1|A|PC2|B).
+        pattern2 = r"Crear\s+vlan\s+(\w+)\s+en\s+el\s+piso\s+(uno|dos)"
         ipt = jd['input']
         res = re.search(pattern,ipt)
+        res2 = re.search(pattern2,ipt)
+        # Dirección IP y puerto telnet del dispositivo en GNS3
+        HOST = "192.168.234.130"  # dirección IP de tu dispositivo en GNS3
+        user123 = "baki"
+        password123 = "12345"
         if res: # Se encontro el patron
-            if ("PC1" in ipt) or ("A" in ipt): #Nodo A o PC1
-                otp = "$ configure terminal $ access-list extended block-out $ deny ip "+str(A)+" any $ exit $ interface eth0 $ ip access-group block-out in $ exit"
+            # TELNET AL HOST x.x.x.x
+            tn123 = telnetlib.Telnet(HOST, timeout=10)
+            # TELNET CREDENCIALES
+            tn123.read_until(b"Username:", timeout=1)
+            tn123.write(user123.encode("ascii") + b"\n")
+            tn123.read_until(b"Password:", timeout=5)
+            tn123.write(password123.encode("ascii") + b"\n")
+            if ("PC1" in ipt) or ("A" in ipt): #Nodo A o PC1 estan en el piso 1.
+                # Se verifica si existe alguna lista de acceso.
+                Devices = list(Device.objects.values())
+                pc = [device for device in Devices if device['name'] == 'PC1']
+                digirouters = [device for device in Devices if device['name'] == 'DigiRouter']
+                flag = False
+                for router in digirouters:
+                    if(router['firewall'] == 101):
+                        flag = True
+                for router in digirouters:
+                    if (flag):
+                        commands = [
+                            b"configure terminal\n",
+                            b"access-list 101 deny ip host "+ pc[0]['ip_address'].encode('utf-8') + b" host 192.168.234.130\n",
+                            b"exit\n"
+                        ]
+                        # Ejecutar comandos de configuración
+                        for command in commands:
+                            tn123.write(command)
+                            time.sleep(1)  # Espera breve entre comandos
+
+                        tn123.write(b"exit\n")
+                        tn123.close()
+                        otp = "$configure terminal $ access-list 101 deny ip host "+str(pc[0]['ip_address'])+" host 192.168.234.130 $ exit"
+                        settingsLog.objects.create(input=jd['input'],output=otp)
+                        datos = {'message':"Success"}
+                        return JsonResponse(datos)
+                    else:
+                        commands = [
+                            b"configure terminal\n",
+                            b"access-list 101 deny ip host "+ pc[0]['ip_address'].encode('utf-8') + b" host 192.168.234.130\n",
+                            b"access-list 101 permit ip any any\n",
+                            b"interface FastEthernet0/0\n",  # Interfaz hacia la LAN1
+                            b"ip access-group 101 in\n",
+                            b"exit\n"
+                        ]
+                        # Ejecutar comandos de configuración
+                        for command in commands:
+                            tn123.write(command)
+                            time.sleep(1)  # Espera breve entre comandos
+
+                        tn123.write(b"exit\n")
+                        tn123.close()
+                        d =Device.objects.get(router['id'])
+                        d.firewall = 101
+                        d.save()
+                        otp = "$configure terminal $ access-list 101 deny ip host "+str(pc[0]['ip_address'])+" host 192.168.234.130 $ access-list 101 permit ip any any $ interface FastEthernet0/0 $ ip access-group 101 in $ exit"
+                        settingsLog.objects.create(input=jd['input'],output=otp)
+                        datos = {'message':"Success"}
+                        return JsonResponse(datos)
+            elif("PC2" in ipt) or ("B" in ipt): #Nodo B o PC2
+                # Se verifica si existe alguna lista de acceso.
+                Devices = list(Device.objects.values())
+                pc = [device for device in Devices if device['name'] == 'PC2']
+                digirouters = [device for device in Devices if device['name'] == 'DigiRouter']
+                flag = False
+                for router in digirouters:
+                    if(router['firewall'] == 101):
+                        flag = True
+                for router in digirouters:
+                    if (flag):
+                        commands = [
+                            b"configure terminal\n",
+                            b"access-list 101 deny ip host "+ pc[0]['ip_address'].encode('utf-8') + b" host 192.168.234.130\n",
+                            b"exit\n"
+                        ]
+                        # Ejecutar comandos de configuración
+                        for command in commands:
+                            tn123.write(command)
+                            time.sleep(1)  # Espera breve entre comandos
+
+                        tn123.write(b"exit\n")
+                        tn123.close()
+                        otp = "$configure terminal $ access-list 101 deny ip host "+str(pc[0]['ip_address'])+" host 192.168.234.130 $ exit"
+                        settingsLog.objects.create(input=jd['input'],output=otp)
+                        datos = {'message':"Success"}
+                        return JsonResponse(datos)
+                    else:
+                        print(pc[0]['ip_address'])
+                        commands = [
+                            b"configure terminal\n",
+                            b"access-list 101 deny ip host " +pc[0]['ip_address'].encode('utf-8') + b" host 192.168.234.130\n",
+                            b"access-list 101 permit ip any any\n",
+                            b"interface FastEthernet0/0\n",  # Interfaz hacia la LAN1
+                            b"ip access-group 101 in\n",
+                            b"exit\n"
+                        ]
+                        # Ejecutar comandos de configuración
+                        for command in commands:
+                            tn123.write(command)
+                            time.sleep(1)  # Espera breve entre comandos
+
+                        tn123.write(b"exit\n")
+                        tn123.close()
+                        d =Device.objects.get(id=router['id'])
+                        d.firewall = 101
+                        d.save()
+                        otp = "$configure terminal $ access-list 101 deny ip host "+str(pc[0]['ip_address'])+" host 192.168.234.130 $ access-list 101 permit ip any any $ interface FastEthernet0/0 $ ip access-group 101 in $ exit"
+                        settingsLog.objects.create(input=jd['input'],output=otp)
+                        datos = {'message':"Success"}
+                        return JsonResponse(datos)
+            elif("PC3" in ipt) or ("C" in ipt): #Nodo C o PC3
+                # Se verifica si existe alguna lista de acceso.
+                Devices = list(Device.objects.values())
+                pc = [device for device in Devices if device['name'] == 'PC3']
+                digirouters = [device for device in Devices if device['name'] == 'DigiRouter']
+                flag = False
+                for router in digirouters:
+                    if(router['firewall'] == 102):
+                        flag = True
+                for router in digirouters:
+                    if (flag):
+                        commands = [
+                            b"configure terminal\n",
+                            b"access-list 102 deny ip host "+pc[0]['ip_address'].encode('utf-8') + b" host 192.168.234.130\n",
+                            b"exit\n"
+                        ]
+                        # Ejecutar comandos de configuración
+                        for command in commands:
+                            tn123.write(command)
+                            time.sleep(1)  # Espera breve entre comandos
+
+                        tn123.write(b"exit\n")
+                        tn123.close()
+                        otp = "$configure terminal $ access-list 102 deny ip host "+str(pc[0]['ip_address'])+" host 192.168.234.130 $ exit"
+                        settingsLog.objects.create(input=jd['input'],output=otp)
+                        datos = {'message':"Success"}
+                        return JsonResponse(datos)
+                    else:
+                        commands = [
+                            b"configure terminal\n",
+                            b"access-list 102 deny ip host "+ pc[0]['ip_address'].encode('utf-8') + b" host 192.168.234.130\n",
+                            b"access-list 102 permit ip any any\n",
+                            b"interface FastEthernet0/1\n",  # Interfaz hacia la LAN1
+                            b"ip access-group 102 in\n",
+                            b"exit\n"
+                        ]
+                        # Ejecutar comandos de configuración
+                        for command in commands:
+                            tn123.write(command)
+                            time.sleep(1)  # Espera breve entre comandos
+
+                        tn123.write(b"exit\n")
+                        tn123.close()
+                        d =Device.objects.get(router['id'])
+                        d.firewall = 102
+                        d.save()
+                        otp = "$configure terminal $ access-list 102 deny ip host "+str(pc[0]['ip_address'])+" host 192.168.234.130 $ access-list 102 permit ip any any $ interface FastEthernet0/1 $ ip access-group 102 in $ exit"
+                        settingsLog.objects.create(input=jd['input'],output=otp)
+                        datos = {'message':"Success"}
+                        return JsonResponse(datos)
+            else: #Nodo D o PC4
+                # Se verifica si existe alguna lista de acceso.
+                Devices = list(Device.objects.values())
+                pc = [device for device in Devices if device['name'] == 'PC4']
+                digirouters = [device for device in Devices if device['name'] == 'DigiRouter']
+                flag = False
+                for router in digirouters:
+                    if(router['firewall'] == 102):
+                        flag = True
+                for router in digirouters:
+                    if (flag):
+                        commands = [
+                            b"configure terminal\n",
+                            b"access-list 102 deny ip host "+ pc[0]['ip_address'].encode('utf-8') + b" host 192.168.234.130\n",
+                            b"exit\n"
+                        ]
+                        # Ejecutar comandos de configuración
+                        for command in commands:
+                            tn123.write(command)
+                            time.sleep(1)  # Espera breve entre comandos
+
+                        tn123.write(b"exit\n")
+                        tn123.close()
+                        otp = "$configure terminal $ access-list 102 deny ip host "+str(pc[0]['ip_address'])+" host 192.168.234.130 $ exit"
+                        settingsLog.objects.create(input=jd['input'],output=otp)
+                        datos = {'message':"Success"}
+                        return JsonResponse(datos)
+                    else:
+                        commands = [
+                            b"configure terminal\n",
+                            b"access-list 102 deny ip host "+ pc[0]['ip_address'].encode('utf-8') + b" host 192.168.234.130\n",
+                            b"access-list 102 permit ip any any\n",
+                            b"interface FastEthernet0/1\n",  # Interfaz hacia la LAN1
+                            b"ip access-group 102 in\n",
+                            b"exit\n"
+                        ]
+                        # Ejecutar comandos de configuración
+                        for command in commands:
+                            tn123.write(command)
+                            time.sleep(1)  # Espera breve entre comandos
+
+                        tn123.write(b"exit\n")
+                        tn123.close()
+                        d =Device.objects.get(router['id'])
+                        d.firewall = 102
+                        d.save()
+                        otp = "$configure terminal $ access-list 102 deny ip host "+str(pc[0]['ip_address'])+" host 192.168.234.130 $ access-list 102 permit ip any any $ interface FastEthernet0/1 $ ip access-group 102 in $ exit"
+                        settingsLog.objects.create(input=jd['input'],output=otp)
+                        datos = {'message':"Success"}
+                        return JsonResponse(datos)
+        elif res2: # Comandos de vlan
+            # TELNET AL HOST x.x.x.x
+            tn123 = telnetlib.Telnet(HOST, timeout=10)
+            # TELNET CREDENCIALES
+            tn123.read_until(b"Username:", timeout=1)
+            tn123.write(user123.encode("ascii") + b"\n")
+            tn123.read_until(b"Password:", timeout=5)
+            tn123.write(password123.encode("ascii") + b"\n")
+            if("uno" in ipt): # Piso 1
+                print(res2.group(1).encode('utf-8'))
+                commands = [
+                    b"configure terminal\n",
+                    b"interface FastEthernet0/0.10\n",
+                    b"encapsulation dot1Q 10\n",
+                    b"ip address 192.168.3.1 255.255.255.0\n",
+                    b"description VLAN "+res2.group(1).encode('utf-8')+b"\n",
+                    b"exit\n",
+                    b"exit\n",
+                ]
+                # Ejecutar comandos de configuración
+                for command in commands:
+                    tn123.write(command)
+                    time.sleep(1)  # Espera breve entre comando
+                tn123.write(b"exit\n")
+                tn123.close()
+                otp = "$configure terminal $interface FastEthernet0/0.10 $ encapsulation dot1Q 10 $ ip address 192.168.3.1 255.255.255.0 $ description VLAN "+res2.group(1)+" $ exit $ exit"
                 settingsLog.objects.create(input=jd['input'],output=otp)
                 datos = {'message':"Success"}
                 return JsonResponse(datos)
-            else: #Nodo B o PC2
-                otp = "$ configure terminal $ access-list extended block-out $ deny ip "+str(B)+" any $ exit $ interface eth0 $ ip access-group block-out in $ exit"
+            else: # Piso 2
+                commands = [
+                    b"configure terminal\n",
+                    b"interface FastEthernet0/1.20\n",
+                    b"encapsulation dot1Q 20\n",
+                    b"ip address 192.168.4.1 255.255.255.0\n",
+                    b"description VLAN "+res2.group(1).encode('utf-8')+b"\n",
+                    b"exit\n",
+                    b"exit\n",
+                ]
+                # Ejecutar comandos de configuración
+                for command in commands:
+                    tn123.write(command)
+                    time.sleep(1)  # Espera breve entre comando
+                tn123.write(b"exit\n")
+                tn123.close()
+                otp = "$configure terminal $interface FastEthernet0/0.20 $ encapsulation dot1Q 20 $ ip address 192.168.4.1 255.255.255.0 $ description VLAN "+res2.group(1)+" $ exit $ exit"
                 settingsLog.objects.create(input=jd['input'],output=otp)
                 datos = {'message':"Success"}
                 return JsonResponse(datos)
