@@ -24,10 +24,13 @@ export function SettingsPage() {
     const re = /(?:Denegar\s+el\s+acceso\s+de\s+(PC1|A|PC2|B|PC3|C|PC4|D)\s+a\s+internet)|(?:Crear\s+vlan\s+(\w+)\s+en\s+el\s+piso\s+(uno|dos))/;
     if (re.test(data.input)) {
       const res = await createSetting(data);
-      console.log(res);
-      if (res['message'] === 'Command not found') {
+      console.log(res.data['message']);
+      if (res.data['message'] === 'Command not found') {
         setCustomError('El lenguaje utilizado no cumple con lo establecido en instrucciones.');
-      } else {
+      }else if(res.data['message'] === "Error"){
+        setCustomError('El nombre de la vlan ya existe por favor usa otro.');
+      } 
+      else {
         setCustomError('');
       }
     } else {
