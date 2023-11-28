@@ -32,6 +32,8 @@ Se puede acceder a la Wiki con el siguiente [enlace](https://github.com/INF225-2
 - [Hito 3](https://github.com/INF225-2023-2-P201/02-digicore/wiki#hito-3)
 - [Hito 4](https://github.com/INF225-2023-2-P201/02-digicore/wiki#hito-4)
 - [Hito 5](https://github.com/INF225-2023-2-P201/02-digicore/wiki#hito-5)
+- [Hito 6](https://github.com/INF225-2023-2-P201/02-digicore/wiki#hito-6)
+- [Hito 7](https://github.com/INF225-2023-2-P201/02-digicore/wiki#hito-7)
 
 ## Código
 - En la Branch [django_react_mysql](https://github.com/INF225-2023-2-P201/02-digicore/tree/django_react_mysql) se encuentra el código y forma de ejecutar el proyecto.
